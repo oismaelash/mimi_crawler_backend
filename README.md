@@ -14,7 +14,7 @@ For development, you will only need Node.js installed on your environement.
 
 ---
 
-## Test on Postman tool
+## Test on Postman(API) tool
 
 [Collection](https://github.com/IsmaelNascimento/web_crawler_mimi/blob/master/d3_challenge.postman_collection.json)
 
