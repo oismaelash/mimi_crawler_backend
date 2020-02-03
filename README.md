@@ -14,6 +14,11 @@ For development, you will only need Node.js installed on your environement.
 
 ---
 
+## Test on Postman tool
+
+[Collection](https://github.com/IsmaelNascimento/web_crawler_mimi/blob/master/d3_challenge.postman_collection.json)
+
+
 ## The main languages, tools and services used on project
 
 #### BackEnd development:
@@ -23,6 +28,7 @@ For development, you will only need Node.js installed on your environement.
 
 #### DevOps development:
 - [Github](https://github.com/)
+- [Postman](https://www.getpostman.com/)
 
 #### Version control system:
 - [Git](https://git-scm.com/)
