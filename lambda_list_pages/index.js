@@ -1,42 +1,42 @@
-const request = require('request');
-const parseString = require('xml2js').parseString;
+require('module-alias/register')
 
-exports.handler = (eventUrl) => {
+const parseString = require('xml2js').parseString
+const Request = require('@shared/request')
+const Logger = require('@shared/logger')
 
-    let sitemapUrl = `${eventUrl}sitemap.xml`;
+exports.handler = eventUrl => {
+  const siteMapUrl = `${eventUrl}sitemap.xml`
+  const parseBodyXml = body => {
+    return parseString(body, function (err, { sitemapindex: { sitemap } }) {
+      if (err) {
+        return Logger.log(`Error:\n ${err}`)
+      }
 
-    console.log('sitemapUrl: ' + sitemapUrl);
+      if (sitemap === undefined) {
+        return Logger.log('Error, sitemap doesn\'t exists')
+      }
 
-    request(sitemapUrl, function (error, response, body) {
-        if(error){
-            console.log('error:\n', error); // Print the error if one occurred
-        } else {
-            console.log('statusCode:', response.statusCode);
+      sitemap.map(({ loc }) => console.log(loc[0]))
+    })
+  }
 
-            if(response.statusCode != 200){
-                console.log('Error, no exist sitemap');
-                return;
-            }
-            
-            parseString(body, function (err, result) {
+  Logger.log('sitemapUrl: ' + siteMapUrl)
 
-                if(err){
-                    console.log('err: ' + err);
-                    return
-                }
+  Request.doRequest(siteMapUrl)
+    .then(
+      response => {
+        const { statusCode, body } = response
 
-                if(result.urlset == undefined)
-                {
-                    console.log('Error, no exist sitemap');
-                    return;   
-                }
+        Logger.log(`statusCode: ${statusCode}`)
 
-                result.urlset.url.map(url => {
-                    console.log(url.loc[0]);
-                });
-            });
+        if (statusCode === 200) {
+          return parseBodyXml(body)
         }
-    });
+
+        Logger.log('Error, sitemap doesn\'t exists')
+      },
+      err => Logger.log(`Error:\n ${err}`)
+    )
 }
 
-exports.handler('https://www.google.com/');
+exports.handler('https://www.google.com/')

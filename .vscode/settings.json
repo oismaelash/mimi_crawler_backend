@@ -1,0 +1,16 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/*.PNG": true,
+        ".eslintrc.js": true,
+        ".gitignore": true,
+        ".editorconfig": true,
+        "package-lock.json": true,
+        "node_modules": true,
+        "d3_challenge.postman_collection.json": true
+    }
+}

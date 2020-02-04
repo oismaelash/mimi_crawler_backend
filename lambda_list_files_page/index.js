@@ -1,103 +1,78 @@
-const request = require('request');
-const cheerio = require('cheerio');
-var URL = require('url');
+require('module-alias/register')
 
-exports.handler = (eventUrl) => {
-    let arrayFiles = [];
-    let arrayAllLinks = [];
-    let timeout = 120000;
-    let url = eventUrl;
-    console.log(new URL.parse(eventUrl));
-    // console.log(new URL(url));
+const isImage = require('is-image-url')
+const _ = require('lodash')
+const cheerio = require('cheerio')
+const Request = require('@shared/request')
+const Logger = require('@shared/logger')
 
-    function linkHaveFileTypes(value){
-        return value.includes('/js/') || 
-                value.includes('/images/') || 
-                value.includes('/css/');
-    }
+const fetchLinkBody = async linkUrl => {
+  return Request.doRequest(linkUrl)
+}
 
-    request(url, {timeout: timeout}, function (error, response, body) {
-        if(error){
-            console.log('error:\n', error);
-        } else {
-            const $ = cheerio.load(body);
-            console.log('code: ' + response.statusCode);
-            
-            console.log('====Get all links===');
-            
-            $( "*" ).each(function() {
+const linkHaveFileTypes = link => {
+  const isCssOrJs = link.match(/(\.js|\.css)/gmi) != null
+  return isImage(link) || isCssOrJs
+}
 
+const getAllLinks = $ => {
+  return $('*[src], *[href]')
+    .toArray()
+    .map(el => {
+      const href = $(el).attr('href')
+      const src = $(el).attr('src')
 
-                if($(this).attr("src") != undefined){
-                    let value = $(this).attr("src");
+      return href !== undefined ? href : src
+    })
+    .filter(linkHaveFileTypes)
+}
 
-                    if(linkHaveFileTypes(value)){
-                        console.log(value);
-                        arrayAllLinks.push(value);
-                    }
+exports.handler = eventUrl => {
+  Logger.log('====Get all links===')
 
-                } 
-                else if($(this).attr("href") != undefined){
-                    let value =  $(this).attr("href");
+  const arrayFiles = []
 
-                    if(linkHaveFileTypes(value)){
-                        console.log(value);
-                        arrayAllLinks.push(value);
-                    }
-                }
-            });
+  Logger.log(new URL(eventUrl))
+  Request.doRequest(eventUrl, {
+    timeout: 120000,
+    transform: html => cheerio.load(html)
+  })
+    .then(
+      async $ => {
+        const allLinks = getAllLinks($)
 
-            console.log(arrayAllLinks.length);
+        Logger.log(`List link size: ${allLinks.length} \n ====Verify links===`)
 
+        for (const link of allLinks) {
+          const hasProtocol = link.match(/^(http|https)/)
 
-            console.log('====Verify links===');
+          if (!_.isEmpty(hasProtocol)) {
+            Logger.log(`if: ${link}`)
+            arrayFiles.push(link)
+          } else {
+            const newUrl = `${eventUrl}${link}`
 
+            Logger.log(`else: ${newUrl}`)
 
-            // Verify statusCode = 200
-
-            arrayAllLinks.forEach(fileUrl => {
-                let urlData = new URL.parse(url);
-                let hostUrl = `${urlData.protocol}//${urlData.host.replace('www.', '')}`;
-                console.log('hostUrl:: ' + hostUrl);
-
-                if(fileUrl.includes(url)){
-                    console.log('if: ' + fileUrl);
-                    arrayFiles.push(fileUrl);
-                } else {
-                    let newUrl = '';
-
-                    if(fileUrl.includes(hostUrl))
-                        newUrl = fileUrl;
-                    else
-                        newUrl = `${hostUrl}${fileUrl}`;
-
-                    console.log('else: ' + newUrl);
-
-                    request(newUrl, {timeout: timeout}, function (error, response, body) {
-                        if(error){
-                            console.log(error);
-                            return;
-                        }
-
-                        console.log('status code: ' + response.statusCode);
-                        if(response.statusCode == 200)
-                            arrayFiles.push(newUrl);
-                    });
-                }
-            });
-
-
-            setTimeout(() => {
-                console.log('====Links Verified===');
-                arrayFiles.forEach(fileLink => {
-                    console.log(fileLink);
-                });
-    
-                console.log(arrayFiles.length);
-            }, 5000);
-
+            // This code, is really necessary?
+            await fetchLinkBody(newUrl)
+              .then(
+                ({ statusCode }) => {
+                  if (statusCode === 200) {
+                    arrayFiles.push(newUrl)
+                  }
+                },
+                err => Logger.log(err)
+              )
+          }
         }
-    });
-};
 
-exports.handler('https://www.unity.com/');
+        Logger.log('====Links Verified===')
+        arrayFiles.forEach(fileLink => Logger.log(fileLink))
+        Logger.log(arrayFiles.length)
+      },
+      err => Logger.log(`Error:\n ${err}`)
+    )
+}
+
+exports.handler('https://www.unity.com')
