@@ -6,7 +6,7 @@ const cheerio = require('cheerio')
 const Request = require('@shared/request')
 const Logger = require('@shared/logger')
 
-const fetchLinkBody = async linkUrl => {
+const verifyIfFileExist = async linkUrl => {
   return Request.doRequest(linkUrl)
 }
 
@@ -18,9 +18,9 @@ const linkHaveFileTypes = link => {
 const getAllLinks = $ => {
   return $('*[src], *[href]')
     .toArray()
-    .map(el => {
-      const href = $(el).attr('href')
-      const src = $(el).attr('src')
+    .map(element => {
+      const href = $(element).attr('href')
+      const src = $(element).attr('src')
 
       return href !== undefined ? href : src
     })
@@ -41,7 +41,7 @@ exports.handler = eventUrl => {
       async $ => {
         const allLinks = getAllLinks($)
 
-        Logger.log(`List link size: ${allLinks.length} \n ====Verify links===`)
+        Logger.log(`List link count: ${allLinks.length} \n ====Verify links===`)
 
         for (const link of allLinks) {
           const hasProtocol = link.match(/^(http|https)/)
@@ -54,8 +54,8 @@ exports.handler = eventUrl => {
 
             Logger.log(`else: ${newUrl}`)
 
-            // This code, is really necessary?
-            await fetchLinkBody(newUrl)
+            // Verifing if link return file
+            await verifyIfFileExist(newUrl)
               .then(
                 ({ statusCode }) => {
                   if (statusCode === 200) {
@@ -75,4 +75,4 @@ exports.handler = eventUrl => {
     )
 }
 
-exports.handler('https://www.unity.com')
+exports.handler('https://www.ismaelnascimento.com')

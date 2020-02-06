@@ -1,7 +1,8 @@
 require('module-alias/register')
 require('dotenv').config()
 
-const shouldLogDebbug = process.env.DEBBUG_LOG.toLocaleLowerCase() === 'true'
+const shouldLogDebbug = true
+// const shouldLogDebbug = process.env.DEBUG_LOG.toLocaleLowerCase() === true
 
 class Logger {
   static log (message) {

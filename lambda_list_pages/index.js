@@ -7,16 +7,24 @@ const Logger = require('@shared/logger')
 exports.handler = eventUrl => {
   const siteMapUrl = `${eventUrl}sitemap.xml`
   const parseBodyXml = body => {
-    return parseString(body, function (err, { sitemapindex: { sitemap } }) {
+    return parseString(body, function (err, result) {
       if (err) {
         return Logger.log(`Error:\n ${err}`)
       }
 
-      if (sitemap === undefined) {
+      if (result === undefined) {
         return Logger.log('Error, sitemap doesn\'t exists')
       }
 
-      sitemap.map(({ loc }) => console.log(loc[0]))
+      if(result.urlset == undefined){
+        Logger.log(result.sitemapindex)
+        let {sitemap} = result.sitemapindex
+        sitemap.map(({ loc }) => console.log(loc[0]))
+      } else{ // result.sitemapindex
+        Logger.log(result.urlset)
+        let {url} = result.urlset
+        url.map(({ loc }) => console.log(loc[0]))
+      }
     })
   }
 
@@ -39,4 +47,4 @@ exports.handler = eventUrl => {
     )
 }
 
-exports.handler('https://www.google.com/')
+exports.handler('https://ismaelnascimento.com/')
