@@ -2,7 +2,7 @@
 
 ## Requirements
 
-For development, you will only need Node.js installed on your environement.
+For development, you will only need Node.js installed on your environment.
 
 ## Start local project
 
