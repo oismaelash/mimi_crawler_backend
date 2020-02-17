@@ -5,6 +5,7 @@ const Request = require('@shared/request')
 const Logger = require('@shared/logger')
 
 exports.handler = eventUrl => {
+  eventUrl = eventUrl.endsWith('/') ? eventUrl : `${eventUrl}/`
   const siteMapUrl = `${eventUrl}sitemap.xml`
   const parseBodyXml = body => {
     return parseString(body, function (err, result) {
