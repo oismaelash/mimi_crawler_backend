@@ -1,4 +1,4 @@
-# Web Crawler mimi by Ismael Nascimento
+# Mimi Crawler by Ismael Nascimento
 
 ## Requirements
 
